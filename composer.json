@@ -1,0 +1,56 @@
+{
+    "name": "topthink/think",
+    "description": "the new thinkphp framework",
+    "type": "project",
+    "keywords": [
+        "framework",
+        "thinkphp",
+        "ORM"
+    ],
+    "homepage": "http://thinkphp.cn/",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "liu21st",
+            "email": "liu21st@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "topthink/framework": "5.0.*",
+        "topthink/think-captcha": "1.*",
+        "topthink/think-mongo": "1.*",
+        "topthink/think-image": "1.*",
+        "topthink/think-queue": "1.*",
+        "topthink/think-migration": "1.*",
+        "topthink/think-oracle": "1.*",
+		"hashids/hashids": "^2.0",
+		"bshaffer/oauth2-server-php":"v1.10.0"
+    },
+    "autoload": {
+	    "psr-0": { "OAuth2": "src/" },
+        "psr-4": {
+            "app\\": "application",
+			"Fizzday\\FizzJWT\\": "src/"
+        }
+    },
+    "extra": {
+        "think-path": "thinkphp"
+    },
+    "config": {
+        "preferred-install": "dist"
+    },
+	 "require-dev": {
+        "phpunit/phpunit": "^4.0",
+        "aws/aws-sdk-php": "~2.8",
+        "firebase/php-jwt": "~2.2",
+        "predis/predis": "dev-master",
+        "thobbs/phpcassa": "dev-master"
+    },
+    "suggest": {
+        "predis/predis": "Required to use Redis storage",
+        "thobbs/phpcassa": "Required to use Cassandra storage",
+        "aws/aws-sdk-php": "~2.8 is required to use DynamoDB storage",
+        "firebase/php-jwt": "~2.2 is required to use JWT features"
+    }
+}

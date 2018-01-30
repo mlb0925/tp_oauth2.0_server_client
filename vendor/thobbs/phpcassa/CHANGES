@@ -1,0 +1,320 @@
+Changelog
+=========
+
+Changes in 1.1.1
+----------------
+
+Features
+^^^^^^^^
+- Allow null row_count to represent no limit
+- Add UUID::minTimeuuid() and UUID::maxTimeuuid()
+- Make Clock::get_time() more efficient
+
+Miscellaneous
+-------------
+- UUID->string doesn't need to be dynamic
+- Tweak phpunit for hhvm, update TravisCI config
+
+Changes in 1.1.0
+----------------
+The largest change in this release is an upgrade
+to the Thrift 0.9.0 PHP library, which brings improvements
+to the C extension and fixes autoloading issues around
+namespacing of Thrift classes.
+
+Features
+^^^^^^^^
+- Add support for per-column TTLs on insert
+- Upgrade to Thrift 0.9.0
+- Accept string representation of UUIDs on inserts
+
+Bugfixes
+^^^^^^^^
+- Fix subcolumn name packing in super column methods
+- Prevent get_range() infinite loop with ARRAY_FORMAT
+- Fix syntax error with php 5.3
+- Resolve php strict inheritance issues with CfMutator
+- Fix full row and single column counter deletions
+- Properly handle non-scalar types inside composites
+
+Miscellaneous
+^^^^^^^^^^^^^
+- Suggest C extension in composer config
+- Add VERSION file
+- Move C extension to ext/ directory
+
+Changes in 1.0.a.6
+------------------
+This release adds a couple of minor features and primarily
+fixes bugs related to estrict warnings and creating and altering
+keyspaces.  It should be entirely compatible with the previous
+release of phpcassa.
+
+Features
+^^^^^^^^
+- Accept a map of key => ttl for the $ttl parameter in
+  ColumnFamily.batch_insert()
+- Add ColumnFamily.get_range_by_token()
+
+Bugfixes
+^^^^^^^^
+- Create deletion predicate correctly in remove_super_column()
+- Always apply all supplied attributes to KsDefs when creating
+  keyspaces through SystemManager()
+- Fix estrict warnings related to subclassing
+- Fix alter_keyspace(), which was failing to clear cf_defs from
+  the KsDef
+
+Miscellaneous
+^^^^^^^^^^^^^
+- Add composer.json file
+- Integration with Travis CI
+
+Changes in 1.0.a.5
+------------------
+This is a bugfix release, with yet another important fix related to packing.
+In this case, FloatType and DoubleType data were being store in little-endian
+format, while Cassandra expects big-endian format.  If you are only using
+phpcassa, you might not have noticed this, but if you were also using other
+clients, you could get some unexpected values.
+
+This release only reads and writes FloatType and DoubleType values in the
+correct, big-endian format, so any values writting in the old little-endian
+format will not be read correctly. If you need help migrating the old values
+to the new format, please let me know, and I can help you write a quick
+migration script.
+
+Bugfixes
+^^^^^^^^
+- Store FloatType and DoubleType in big-endian format
+- Handle serialized keys in batch_insert() with DICTIONARY_FORMAT
+  correctly
+- Don't limit get_count(), multiget_count() to 100 by default
+
+Changes in 1.0.a.4
+------------------
+This is a bugfix release, with the most important fix affecting some negative
+values when using IntegerType (Int32Type and LongType were not affected).
+
+This bug basically affected half of all negative integers. In particular, the
+ones where the top byte would have a leading 1 bit if it were (abs($value) - 1).
+So, -129 through -256, -32769 through -65536, etc would be packed incorrectly.
+
+If you are only reading negative IntegerType values with phpcassa, this fix
+does not affect you.
+
+Bugfixes
+^^^^^^^^
+- Fix bad packing of some negative IntegerType values
+- Pack IndexExpression values correctly when using a non-string comparator
+
+Changes in 1.0.a.3
+------------------
+This is primarily a bug fix release, with most of the bugs
+affecting get_range() and get_indexed_slices().
+
+Features
+^^^^^^^^
+- Int32Type support (4 byte signed integers)
+- DateType support (millisecond precision timestamps)
+- SystemManager::alter_column() has been added, allowing you to easily
+  set a single column validator
+
+Bugfixes
+^^^^^^^^
+- Avoid potential stack overflow from recursing too deep while skipping
+  tombstones in get_range() and get_indexed_slices()
+- Use correct namespace for UUIDException in UUID.php
+- Fix paging in get_range() and get_indexed_slices() for column families
+  that have non-string key validation classes
+- Handle row count of 1 for get_range() and get_indexed_slices() correctly
+- Fix packing and unpacking of validated columns on column familes with
+  non-string column names
+- Allow creation and dropping of indexes on non-string column names
+
+Changes in 1.0.a.2
+------------------
+This addresses a few bugs in the 1.0.a.2 release only.
+
+Bugfixes
+^^^^^^^^
+- Fix autoloading issues in older versions of PHP 5.3
+- Fix ConsistencyLevel reference in Batch\Mutator
+- Fix BooleanType unpacking
+- Fix Thrift C extension for PHP 5.4
+- Add php5-dev, g++ to debian build dependencies
+
+Changes in 1.0.a.1
+------------------
+This release introduces several major changes to phpcassa:
+
+- PHP namespaces are now used for phpcassa and thrift classes
+- Many classes or functions that were once part of columnfamily.php
+  are now in their own classes and modules
+- An autoload.php file has been added for bootstrapping the autoloader
+  for phpcassa and Thrift classes; this *must* be used for imports to
+  work correctly
+- Full batch operation support has been added
+- CompositeType support has been added
+- Alternate formats for inserting and fetching data may now
+  be used
+- Super column families should be handled with the new phpcassa\SuperColumnFamily
+  class. Any $super_column parameters have been removed from methods
+  in ColumnFamily.
+- Parameters related to column slices are now handled by a single ColumnSlice
+  parameter; in most cases, parameter order has changed slightly for these
+  methods, so check the documentation carefully
+- FloatType, DoubleType, and BooleanType are now supported
+- Thrift has been upgraded to 0.8.0
+
+To help make the upgrade process easier and to demonstrate some of the new
+features, an examples/ directory has been created with full, working
+examples.
+
+Additionally, test coverage has been greatly improved, so a few miscellaneous
+bugs have likely been resolved recently.
+
+Changes in 0.8.a.2
+------------------
+This release upgrades the bundled version of Thrift
+to 0.7.0, which fixes several issues with 32bit
+environments.
+
+Features
+^^^^^^^^
+- Add drop_index() to SystemManager
+- Order multiget_count() results by the order of the input
+  keys
+- Allow for overriding the ConnectionPool error_log mechanism
+  for custom error handling
+
+Bugfixes
+^^^^^^^^
+- Handle multiget() requests with responses that are
+  larger than $buffer_size correctly
+- Don't ignore the $pool_size parameter in the ConnectionPool
+  constructor
+- Pass data intended for UTF8Type values unaltered to Thrift.
+  This fixes issues with corruption of some utf8 data, but the
+  user is now responsible for ensuring the data is encoded
+  correctly.
+- Fix corruption of timestamps in 32bit environments by
+  upgrading to Thrift 0.7.0
+
+Changes in 0.8.a.1
+------------------
+This release adds support for Cassandra 0.8. This release is
+backwards compatible with Cassandra 0.7, and supports a cluster
+with a mixture of nodes running 0.7 and 0.8.
+
+Features
+^^^^^^^^
+- Added ColumnFamily.add() and remove_counter() to work with 0.8
+  counters.
+
+- Support for the 0.8 column family attribute key_validation_class.
+  Keys may now be automatically packed and upacked, similar to column
+  names and values.
+
+- Addition of sysmanager.php and the SystemManager class. This class
+  makes it much easier to dynamically create, alter, and drop keyspaces,
+  column families, and secondary indexes.
+
+- New ConnectionPools are no longer automatically filled upon creation.
+  The method ConnectionPool.fill() was added as an alternative way to
+  supply this functionality.
+
+Bugfixes
+^^^^^^^^
+- Handle NotFoundException and other Exceptions cleanly in ConnectionPool.
+  Previously, these could result in a slow drain of connections from the
+  pool.
+
+- The default ColumnFamily buffer_size has been lowered from 8096 to 1024.
+
+Deprecated
+^^^^^^^^^^
+- The ColumnFamily constructor arguments $autopack_names and $autopack_values
+  are deprecated. Use set_autopack_names() and
+  set_autopack_values() after creating the ColumnFamily instead.
+
+- The ColumnFamily constructor argument $buffer_size has been deprecated.
+  The public attribute $buffer_size should be set instead.
+
+- The ColumnFamily constructor arguments $read_consistency_level
+  and $write_consistency_level have been deprecated.
+  The public attributes of the same names should be set instead. Both
+  attributes still default to ConsistencyLevel ONE.
+
+- The ConnectionPool constructor argument $framed_transport is deprecated;
+  framed transport will be assumed in later versions.
+
+- The ConnectionPool constructor argument $max_retries is deprecated;
+  adjust the public attribue of the same name instead.
+
+- The ConnectionPool constructor argument $recycle is deprecated;
+  adjust the public attribue of the same name instead.
+
+Changes in 0.7.a.4
+------------------
+
+The bundled Thrift library has been updated to a post-0.6 trunk
+version.  An important bugfix was made in Thrift which greatly
+improves performance.
+
+Bugfixes
+^^^^^^^^
+- Credentials were not properly passed through Thrift, causing
+  any authorization attempts to fail.
+
+Features
+^^^^^^^^
+- Added the ConnectionPool class to connection.php. This allows
+  for better failover and loadbalancing of operations. See the
+  documentation for the ConnectionPool class when upgrading from
+  0.7.a.3 or earlier.
+
+Deprecated
+^^^^^^^^^^
+- The Connection class in connection.php has been replaced by
+  ConnectionPool and is now deprecated.
+
+Changes in 0.7.a.3
+------------------
+
+Bugfixes
+^^^^^^^^
+- Typo in throwing IncompatibleAPIException
+- remove() on super column families did not pack names correctly
+- CassandraUtil::uuid3() param name should be $node not $null
+
+Features
+^^^^^^^^
+- Use remove() Thrift API call instead of batch_mutate() when possible
+- Allow a microsecond timestamp to be passed in for v1 UUID creation
+- Log connection errors with error_log()
+
+Deprecated
+^^^^^^^^^^
+None
+
+Changes in 0.7.a.2
+------------------
+
+Bugfixes
+^^^^^^^^
+- Fix server revival bug
+- Remove print statement from Connection on connection failure
+
+Features
+^^^^^^^^
+- Add an import() method for UUIDs to CassandraUtil to convert binary UUID
+  representations back into UUID objects
+
+Deprecated
+^^^^^^^^^^^^
+None
+
+Changes in 0.7.a1
+-----------------
+Initial release

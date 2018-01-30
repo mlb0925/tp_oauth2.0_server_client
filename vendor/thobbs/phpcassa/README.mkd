@@ -1,0 +1,108 @@
+phpcassa
+========
+
+[![Build Status](https://secure.travis-ci.org/thobbs/phpcassa.png?branch=master)](http://travis-ci.org/thobbs/phpcassa)
+
+phpcassa is a PHP client library for [Apache Cassandra](http://cassandra.apache.org).
+
+* Compatible with Cassandra 0.7 through 1.2
+* Optional C extension for improved performance
+
+phpcassa is compatible with PHP 5.3+
+
+phpcassa is open source under the [MIT license](http://www.opensource.org/licenses/mit-license.php).
+
+Deprecated
+----------
+At this point, **phpcassa has been deprecated and will no longer be supported**.
+
+I suggest using the DataStax PHP driver located here: https://github.com/datastax/php-driver.  It supports CQL, has many excellent features, and is well maintained.
+
+Documentation
+-------------
+
+While this README includes some useful information, the official and more
+thorough documentation can be found here:
+
+[http://thobbs.github.com/phpcassa](http://thobbs.github.com/phpcassa)
+
+
+Examples
+--------
+You can find a few fully working example scripts in the `examples/` directory.
+
+### Opening Connections
+
+~~~php
+$pool = new ConnectionPool('Keyspace1');
+~~~
+
+or
+
+~~~php
+$pool = new ConnectionPool('Keyspace1', array('localhost'));
+~~~
+
+### Create a column family object
+
+~~~php
+$users = new ColumnFamily($pool, 'Standard1');
+$super = new SuperColumnFamily($pool, 'Super1');
+~~~
+
+### Inserting
+
+~~~php
+$users->insert('key', array('column1' => 'value1', 'column2' => 'value2'));
+~~~
+
+### Querying
+
+~~~php
+$users->get('key');
+$users->multiget(array('key1', 'key2'));
+~~~
+
+### Removing
+
+~~~php
+$users->remove('key1'); // removes whole row
+$users->remove('key1', 'column1'); // removes 'column1'
+~~~
+
+### Other
+
+~~~php
+$users->get_count('key1'); // counts the number of columns in row 'key1'
+$users->get_range('key1', 'key9'); // gets all rows with keys between '1' and '9'
+~~~
+
+Using the C Extension
+---------------------
+
+The C extension is crucial for phpcassa's performance.
+
+You need to configure and make to be able to use the C extension.
+
+*Note*: if `checkinstall` is available, run `sudo checkinstall` in place of
+`sudo make install`.
+
+~~~bash
+cd ext/thrift_protocol
+phpize
+./configure
+make
+sudo make install
+~~~
+
+Add the following line to your php.ini file:
+
+~~~
+extension=thrift_protocol.so
+~~~
+
+Getting Help
+------------
+
+* Mailing list: [phpcassa on google groups](http://groups.google.com/group/phpcassa)
+* IRC: Channel #cassandra on irc.freenode.net
